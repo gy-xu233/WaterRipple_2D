@@ -1,0 +1,23 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+Texture2D buffer;
+int2 mousePos;
+RWTexture2D<float4> Result;
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    float pp = Result[id.xy].x;
+    float pDown = buffer[uint2(id.x, id.y - 1)].x;
+    float pLeft = buffer[uint2(id.x - 1, id.y)].x;
+    float pRight = buffer[uint2(id.x + 1, id.y)].x;
+    float pUp = buffer[uint2(id.x, id.y + 1)].x;
+
+    float d = smoothstep(8.5, 0.5, distance(mousePos, id.xy));
+    d += -(pp - 0.5) * 2.0 + (pDown + pLeft + pRight + pUp - 2.0);
+    d *= 0.99; 
+    d = d * 0.5 + 0.5;
+    Result[id.xy] = float4(d, 0, 0, 0);
+}
